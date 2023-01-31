@@ -2443,3 +2443,15 @@ class Avanza:
             HttpMethod.GET,
             Route.CURRENT_OFFERS_PATH.value
         )
+
+    def get_price_chart_market_maker(self, order_book_id: str):
+        return self.__call(
+            HttpMethod.GET,
+            Route.PRICE_CHART_MARKET_MAKER.value.format(order_book_id),
+        )
+
+    def get_chart_data_range(self, order_book_id: str, from_date: date, to_date: date):
+        return self.__call(
+            HttpMethod.GET,
+            Route.CHARTDATA_RANGE_PATH.value.format(order_book_id, from_date.isoformat(), to_date.isoformat()),
+        )

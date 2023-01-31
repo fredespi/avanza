@@ -127,3 +127,5 @@ class Route(enum.Enum):
     TRANSACTIONS_DETAILS_PATH = '/_api/transactions'
     WATCHLISTS_ADD_DELETE_PATH = '/_api/usercontent/watchlist/{}/orderbooks/{}'
     WATCHLISTS_PATH = '/_mobile/usercontent/watchlist'
+    PRICE_CHART_MARKET_MAKER = '/_api/price-chart/marketmaker/{}?timePeriod=one_month'
+    CHARTDATA_RANGE_PATH = '/_api/price-chart/stock/{}?from={}&to={}'
