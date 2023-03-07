@@ -1,16 +1,17 @@
 
 import hashlib
-from typing import Optional
 from datetime import date
-from typing import Any, Callable, Sequence, Dict
+from typing import Any, Callable, Dict, Optional, Sequence
 
 import pyotp
 import requests
 
+from avanza.entities import StopLossOrderEvent, StopLossTrigger
+
 from .avanza_socket import AvanzaSocket
 from .constants import (ChannelType, HttpMethod, InstrumentType, ListType,
-                        OrderType, Route, TimePeriod, TransactionType,
-                        TransactionsDetailsType, Resolution)
+                        OrderType, Resolution, Route, TimePeriod,
+                        TransactionsDetailsType, TransactionType)
 
 BASE_URL = 'https://www.avanza.se'
 MIN_INACTIVE_MINUTES = 30
@@ -515,69 +516,122 @@ class Avanza:
         """ Get info about a fund
 
         Returns:
-            {
-                'NAV': float,
-                'NAVLastUpdated': str,
-                'administrators': str,
-                'autoPortfolio': bool,
-                'buyFee': float,
-                'buyable': bool,
-                'capital': float,
-                'changeSinceOneDay': float,
-                'changeSinceOneMonth': float,
-                'changeSinceOneWeek': float,
-                'changeSinceOneYear': float,
-                'changeSinceSixMonths': float,
-                'changeSinceThreeMonths': float,
-                'changeSinceTurnOfTheYear': float,
-                'description': str,
-                'domicile': str,
-                'fundCompany': {
-                    'homePage': str,
-                    'name': str
-                },
-                'hasInvestmentFees': bool,
-                'id': str,
-                'isin': str,
-                'loanFactor': float,
-                'managementFee': float,
-                'name': str,
-                'normanAmount': float,
-                'numberOfOwners': int,
-                'numberOfPriceAlerts': int,
-                'otherFees': str,
-                'positions': [{
-                    'accountId': str,
-                    'accountName': str,
-                    'accountType': str,
-                    'acquiredValue': float,
-                    'averageAcquiredPrice': float,
-                    'profit': float,
-                    'profitPercent': float,
-                    'value': float,
-                    'volume': float
-                }],
-                'positionsTotalValue': float,
-                'prospectus': str,
-                'relatedFunds': [{
-                    'changeSinceOneYear': float,
-                    'id': str,
-                    'name': str
-                }],
-                'risk': int,
-                'riskLevel': str,
-                'sellFee': float,
-                'sellable': bool,
-                'startDate': str,
-                'subCategory': str,
-                'tradingCurrency': str,
-                'type': str
-            }
+        {
+            "adminCompany": {
+                "country": str,
+                "name": str,
+                "url": str
+            },
+            "aumCoveredCarbon": float,
+            "capital": float,
+            "carbonRiskScore": float,
+            "carbonSolutionsInvolvement": float,
+            "categories": [
+                str
+            ],
+            "controversyScore": float,
+            "countryChartData": [
+                {
+                    "countryCode": str,
+                    "currency": str,
+                    "isin": str,
+                    "name": str,
+                    "orderbookId": str,
+                    "type": str,
+                    "y": float
+                }
+            ],
+            "currency": str,
+            "description": str,
+            "developmentFiveYears": float,
+            "developmentOneDay": float,
+            "developmentOneMonth": float,
+            "developmentOneYear": float,
+            "developmentSixMonths": float,
+            "developmentThisYear": float,
+            "developmentThreeMonths": float,
+            "developmentThreeYears": float,
+            "environmentalScore": float,
+            "esgScore": float,
+            "fossilFuelInvolvement": float,
+            "fundManagers": [
+                {
+                    "name": str,
+                    "startDate": date
+                }
+            ],
+            "fundRatingViews": [
+                {
+                    "date": date,
+                    "fundRating": int,
+                    "fundRatingType": str
+                }
+            ],
+            "fundType": str,
+            "fundTypeName": str,
+            "governanceScore": float,
+            "hedgeFund": bool,
+            "holdingChartData": [
+                {
+                    "countryCode": str,
+                    "currency": str,
+                    "isin": str,
+                    "name": str,
+                    "orderbookId": str,
+                    "type": str,
+                    "y": float
+                }
+            ],
+            "indexFund": bool,
+            "isin": str,
+            "lowCarbon": bool,
+            "managementFee": float,
+            "nav": float,
+            "navDate": date,
+            "portfolioDate": date,
+            "ppmCode": type(None),
+            "pricingFrequency": str,
+            "primaryBenchmark": str,
+            "productFee": float,
+            "productInvolvements": [
+                {
+                    "product": str,
+                    "productDescription": str,
+                    "value": float
+                }
+            ],
+            "prospectusLink": str,
+            "rating": int,
+            "recommendedHoldingPeriod": str,
+            "risk": int,
+            "riskText": str,
+            "sectorChartData": [
+                {
+                    "countryCode": type(None),
+                    "currency": str,
+                    "isin": type(None),
+                    "name": str,
+                    "orderbookId": type(None),
+                    "type": str,
+                    "y": float
+                }
+            ],
+            "sharpeRatio": float,
+            "socialScore": float,
+            "standardDeviation": float,
+            "superloanOrderbook": bool,
+            "sustainabilityRating": int,
+            "sustainabilityRatingCategoryName": str,
+            "svanen": bool,
+            "ucitsFund": bool
+        }
         """
 
-        return self.get_instrument(
-            InstrumentType.FUND,
-            fund_id
+        return self.__call(
+            HttpMethod.GET,
+            Route.FUND_PATH.value.format(
+                fund_id
+            )
         )
 
     def get_stock_info(
@@ -1552,7 +1606,7 @@ class Avanza:
         Returns:
             {
                 'ohlc': [{'timestamp': int, 'open': float, 'close': float, 'low': float, 'high': float, 'totalVolumeTraded': int}]
-                'metadata': 
+                'metadata':
                 { 'resolution' : {'chartResolution': str,
                                   'availableResolutions': [str]}
                 }
@@ -1666,6 +1720,67 @@ class Avanza:
                 'orderbookId': order_book_id,
                 'accountId': account_id,
                 'volume': volume
+            }
+        )
+
+
+    def place_stop_loss_order(
+        self,
+        parent_stop_loss_id: str,
+        account_id: str,
+        order_book_id: str,
+        stop_loss_trigger: StopLossTrigger,
+        stop_loss_order_event: StopLossOrderEvent,
+    ):
+        """ Place an stop loss order
+
+        Args:
+            parent_stop_loss_id: The id of the parent stop loss order. If this is the first stop loss order, this should be "0".
+            
+            account_id: A valid account id.
+
+            order_book_id: The order book id of the instrument to place the stop loss order for.
+
+            stop_loss_trigger: The stop loss trigger type.
+
+            stop_loss_order_event: The stop loss order event type.
+
+        Returns:
+            If the order was successfully placed:
+
+            {
+                status: 'SUCCESS',
+                stoplossOrderId: str
+            }
+
+            If the order was not placed:
+
+            {
+                status: str,
+                stoplossOrderId: str
+            }
+        """
+
+        return self.__call(
+            HttpMethod.POST,
+            Route.ORDER_PLACE_STOP_LOSS_PATH.value,
+            {
+                'parentStopLossId': parent_stop_loss_id,
+                'accountId': account_id,
+                'orderBookId': order_book_id,
+                'stopLossTrigger': {
+                    'type': stop_loss_trigger.type,
+                    'value': stop_loss_trigger.value,
+                    'validUntil': stop_loss_trigger.valid_until.isoformat()
+                },
+                'stopLossOrderEvent': {
+                    'type': stop_loss_order_event.type,
+                    'price': stop_loss_order_event.price,
+                    'volume': stop_loss_order_event.volume,
+                    'validDays': stop_loss_order_event.valid_days,
+                    'priceType': stop_loss_order_event.price_type,
+                    'shortSellingAllowed': stop_loss_order_event.short_selling_allowed
+                }
             }
         )
 
